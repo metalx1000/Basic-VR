@@ -21,10 +21,11 @@
   <body>
     <div id="webglviewer"></div>
 
-    <script src="./js/three.min.js"></script>
-    <script src="./js/StereoEffect.js"></script>
-    <script src="./js/DeviceOrientationControls.js"></script>
-    <script src="./js/OrbitControls.js"></script>
+    <script src="./libs/three.min.js"></script>
+    <script src="./libs/StereoEffect.js"></script>
+    <script src="./libs/DeviceOrientationControls.js"></script>
+    <script src="./libs/OrbitControls.js"></script>
+    <script src="./libs/ColladaLoader.js"></script>
 
     <script>
       var scene,
@@ -34,16 +35,24 @@
           container,
           effect,
           controls,
+          loader,
+          dae,
           clock;
 
+
       var cubes = [];
-      init();
+      sceneLoader('shape.dae');
 
       function init() {
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.001, 700);
-        camera.position.set(0, 15, 0);
+        camera.position.set(0, 1, 0);
         scene.add(camera);
+        
+        scene.add(dae);
+        //dae.position.y = -1;
+        //dae.scale.set(.5,.5,.5);
+
 
         renderer = new THREE.WebGLRenderer();
         element = renderer.domElement;
@@ -61,9 +70,6 @@
         );
         controls.noPan = true;
         controls.noZoom = true;
-
-        //add Floor
-        addFloor();
 
         // Our preferred controls via DeviceOrientation
         function setOrientationControls(e) {
@@ -84,18 +90,12 @@
         // Lighting
         var light = new THREE.PointLight(0x999999, 2, 100);
         light.position.set(50, 50, 50);
-        scene.add(light);
+        //scene.add(light);
 
         var lightScene = new THREE.PointLight(0x999999, 2, 100);
         lightScene.position.set(0, 5, 0);
-        scene.add(lightScene);
+        //scene.add(lightScene);
 
-        addCube(10,20,10);
-        addCube(-10,15,10);
-        addCube(10,12,-10);
-        addCube(-10,15,-10);
-        addCube(5,20,-5);
-        
         animate();
       }
 
@@ -142,33 +142,17 @@
         }
       }
 
-      function addFloor(){
-        var floorTexture = THREE.ImageUtils.loadTexture('textures/wood.jpg');
-        floorTexture.wrapS = THREE.RepeatWrapping;
-        floorTexture.wrapT = THREE.RepeatWrapping;
-        floorTexture.repeat = new THREE.Vector2(50, 50);
 
-        floorTexture.anisotropy = renderer.getMaxAnisotropy();
-        var floorMaterial = new THREE.MeshPhongMaterial({
-          color: 0xffffff,
-          specular: 0xffffff,
-          shininess: 20,
-          shading: THREE.FlatShading,
-          map: floorTexture
-        });
+//Scene loading
+      function sceneLoader(d){
+        var loader = new THREE.ColladaLoader();
+        loader.options.convertUpAxis = true;
+        loader.load( d, function ( collada ) {
 
-        var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
-
-        var floor = new THREE.Mesh(geometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
-        scene.add(floor);        
-      }
-
-      function addCube(x,y,z){
-        var cube = new THREE.Mesh(new THREE.CubeGeometry(5,5,5), new THREE.MeshNormalMaterial());
-        cubes.push(cube);
-        cube.position.set(x,y,z);
-        scene.add(cube); 
+          dae = collada.scene;
+          init();
+          animate();
+        } );
       }
     </script>
   </body>
